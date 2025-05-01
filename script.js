@@ -3,7 +3,12 @@ document.addEventListener('DOMContentLoaded', () => {
   const userInput = document.getElementById('user-input');
   const sendButton = document.getElementById('send-button');
 
-  const apiUrl = `${window.location.protocol}//${window.location.hostname}:3000/api/chat`;
+  const isLocalhost =
+    window.location.hostname === 'localhost' ||
+    window.location.hostname === '127.0.0.1';
+
+  const apiUrl = isLocalhost ? 'http://localhost:3000/api/chat' : '/api/chat';
+
   console.log('Using API URL:', apiUrl);
 
   function displayMessage(role, text) {

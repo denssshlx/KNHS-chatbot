@@ -4,6 +4,11 @@ import { GoogleGenerativeAI } from '@google/generative-ai';
 import { chatHistory } from './chatHistory.js';
 import { systemPrompt } from './systemPrompt.js';
 import dotenv from 'dotenv';
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 dotenv.config({
   path: process.env.NODE_ENV === 'production' ? '.env.production' : '.env',
@@ -12,6 +17,7 @@ dotenv.config({
 const app = express();
 const port = process.env.PORT || 3000;
 
+// CORS setup
 app.use(
   cors({
     origin: '*',
@@ -21,7 +27,9 @@ app.use(
 );
 
 app.use(express.json());
-app.use(express.static('./'));
+
+// Serve static files from the current directory
+app.use(express.static(__dirname));
 
 const apiKey = process.env.GEMINI_API_KEY;
 const genAI = new GoogleGenerativeAI(apiKey);
@@ -56,6 +64,11 @@ app.post('/api/chat', async (req, res) => {
       .status(500)
       .json({ error: 'An error occurred while processing your request' });
   }
+});
+
+// Make sure the SPA routes work by returning index.html for any unmatched route
+app.get('*', (req, res) => {
+  res.sendFile(path.join(__dirname, 'index.html'));
 });
 
 app.listen(port, () => {
