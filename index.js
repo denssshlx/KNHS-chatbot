@@ -3,14 +3,27 @@ import cors from 'cors';
 import { GoogleGenerativeAI } from '@google/generative-ai';
 import { chatHistory } from './chatHistory.js';
 import { systemPrompt } from './systemPrompt.js';
+import dotenv from 'dotenv';
+
+dotenv.config({
+  path: process.env.NODE_ENV === 'production' ? '.env.production' : '.env',
+});
 
 const app = express();
-const port = 3000;
+const port = process.env.PORT || 3000;
 
-app.use(cors());
+app.use(
+  cors({
+    origin: '*',
+    methods: ['GET', 'POST'],
+    credentials: true,
+  })
+);
+
 app.use(express.json());
+app.use(express.static('./'));
 
-const apiKey = process.env.GEMINI_API_KEY || "AIzaSyAEB8iM4Fd5p-9VdFFB_1FWW69pF4pHkGo";
+const apiKey = process.env.GEMINI_API_KEY;
 const genAI = new GoogleGenerativeAI(apiKey);
 
 const model = genAI.getGenerativeModel({
@@ -22,7 +35,7 @@ const model = genAI.getGenerativeModel({
     maxOutputTokens: 2048,
   },
   systemInstruction: {
-    role: "model",
+    role: 'model',
     parts: [{ text: systemPrompt }],
   },
 });
@@ -30,7 +43,7 @@ const model = genAI.getGenerativeModel({
 app.post('/api/chat', async (req, res) => {
   try {
     const { message } = req.body;
-    
+
     const chatSession = model.startChat({
       history: chatHistory,
     });
@@ -39,10 +52,14 @@ app.post('/api/chat', async (req, res) => {
     res.json({ response: result.response.text() });
   } catch (error) {
     console.error('Error:', error);
-    res.status(500).json({ error: 'An error occurred while processing your request' });
+    res
+      .status(500)
+      .json({ error: 'An error occurred while processing your request' });
   }
 });
 
 app.listen(port, () => {
   console.log(`Server running at http://localhost:${port}`);
+  console.log(`Environment: ${process.env.NODE_ENV}`);
+  console.log(`CORS: Allowing all origins`);
 });

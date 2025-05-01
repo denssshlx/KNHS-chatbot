@@ -1,0 +1,15 @@
+services:
+  - type: web
+    name: knhs-chatbot
+    env: node
+    buildCommand: npm install
+    startCommand: NODE_ENV=production node index.js
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 3000
+      - key: GEMINI_API_KEY
+        sync: false
+      - key: FRONTEND_URL
+        value: https://knhs-chatbot.onrender.com
